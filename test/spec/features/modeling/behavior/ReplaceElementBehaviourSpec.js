@@ -445,4 +445,56 @@ describe('features/modeling - move start event behavior', function() {
 
   });
 
+  describe('Exchanging expanded and collapsed Elements', function() {
+
+    var diagramXML = require('../../../../fixtures/bpmn/import/collapsed/processWithChildren.bpmn');
+
+    beforeEach(bootstrapModeler(diagramXML, { modules: testModules }));
+
+    it('when element got expanded, empty labels should be hidden',
+      inject(function(elementRegistry, bpmnReplace) {
+
+        var collapsedSubProcess = elementRegistry.get('SubProcess_1');
+
+        var expandedSubProcess = bpmnReplace.replaceElement(collapsedSubProcess,
+          {
+            type: 'bpmn:SubProcess',
+            isExpanded: true
+          }
+        );
+
+        var children = expandedSubProcess.children;
+
+        children.forEach(function(child) {
+          if (child.type === 'label' && !child.businessObject.name) {
+            expect(child.hidden).to.eql(true);
+          }
+        });
+
+      }));
+
+
+    it('when element got collapsed, children should be kept and hidden',
+     inject(function(elementRegistry, bpmnReplace) {
+
+       var expandedSubProcess = elementRegistry.get('SubProcess_2');
+
+       var collapsedSubProcess = bpmnReplace.replaceElement(expandedSubProcess,
+         {
+           type: 'bpmn:SubProcess',
+           isExpanded: false
+         }
+       );
+
+       var children = collapsedSubProcess.children;
+       expect(children.length).to.eql(9);
+
+       children.forEach(function(child) {
+         expect(child.hidden).to.eql(true);
+       });
+
+     }));
+
+
+  });
 });
